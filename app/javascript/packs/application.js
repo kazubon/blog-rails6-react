@@ -1,6 +1,9 @@
 require("@rails/ujs").start();
 require("turbolinks").start();
 
+import React from 'react'
+import ReactDOM from 'react-dom'
+
 import Vue from 'vue';
 import TurbolinksAdapter from 'vue-turbolinks'
 
@@ -19,7 +22,6 @@ document.addEventListener('turbolinks:load', () => {
 
   let apps = [
     { elem: '#entry-index', object: EntryIndex },
-    { elem: '#entry-form', object: EntryForm },
     { elem: '#entry-star', object: EntryStar },
     { elem: '#session-form', object: SessionForm }
   ];
@@ -33,6 +35,20 @@ document.addEventListener('turbolinks:load', () => {
       else { // HTMLをテンプレートに
         new Vue(app.object).$mount(app.elem);
       }
+    }
+  });
+
+  apps = [
+    { elem: '#entry-form', object: EntryForm },
+  ];
+
+  props = window.reactProps || {};
+  apps.forEach((app) => {
+    if($(app.elem).length) {
+      ReactDOM.render(
+        React.createElement(app.object, props),
+        $(app.elem)[0],
+      );
     }
   });
 });
