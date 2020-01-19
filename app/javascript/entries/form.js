@@ -115,15 +115,6 @@ function handleDelete(entryId, updateState) {
   });
 }
 
-function Alert(props) {
-  if(props.alert) {
-    return <div className="alert alert-danger">{props.alert}</div>;
-  }
-  else {
-    return null;
-  }
-}
-
 function TagList(props) {
   return props.tags.map((tag, idx) => {
     return <input key={idx}
@@ -144,17 +135,12 @@ function SubmitButton(props) {
 }
 
 function DeleteButton(props) {
-  if(props.entryId) {
-    return (
-      <div className="col text-right">
-        <button type="button" className="btn btn-outline-danger"
-          onClick={e => handleDelete(props.entryId, props.updateState)}>削除</button>
-      </div>
-    );
-  }
-  else {
-    return null;
-  }
+  return (
+    <div className="col text-right">
+      <button type="button" className="btn btn-outline-danger"
+        onClick={props.onClick}>削除</button>
+    </div>
+  );
 }
 
 export default function (props) {
@@ -171,7 +157,7 @@ export default function (props) {
 
   return (
     <form onSubmit={e => handleSubmit(e, props.entryId, state, updateState)}>
-      <Alert alert={state.alert} />
+      {state.alert && <div className="alert alert-danger">{state.alert}</div>}
       <div className="form-group">
         <label htmlFor="entry-title">タイトル</label>
         <input type="text" id="entry-title" name="title" className="form-control"
@@ -206,7 +192,9 @@ export default function (props) {
       </div>
       <div className="row">
         <SubmitButton entryId={props.entryId} />
-        <DeleteButton entryId={props.entryId} updateState={updateState} />
+        {props.entryId &&
+          <DeleteButton
+            onClick={() => handleDelete(props.entryId, updateState)} />}
       </div>
     </form>
   );

@@ -10,8 +10,8 @@ const initialState = {
 
 function reducer(state, action) {
   if(action.name == 'entries') {
-    return { entries: state.entries.concat(action.entries),
-      entriesCount: action.entriesCount, offset: 0 };
+    return { entries: state.entries.concat(action.value.entries),
+      entriesCount: action.value.entriesCount, offset: action.value.offset };
   }
   else {
     return { ...state, [action.name]: action.value };
@@ -23,13 +23,16 @@ function getEntries(query, offset, updateState) {
   let path = '/entries.json?' + qs.stringify(params);
   Axios.get(path).then((res) => {
     updateState({ name: 'entries',
-      entries: res.data.entries, entriesCount: res.data.entries_count });
+      value: {
+        entries: res.data.entries, entriesCount: res.data.entries_count,
+        offset: offset
+      }
+    });
   });
 }
 
 function moreClicked(query, state, updateState) {
   getEntries(query, state.offset + 20, updateState);
-  updateState({ name: 'offset', value: state.offset + 20 })
 }
 
 function SortLinks(props) {
@@ -69,17 +72,12 @@ function EntryList(props) {
 }
 
 function MoreButton(props) {
-  if(props.entries.length < props.entriesCount) {
-    return (
-      <div>
-        <button type="button" onClick={props.onClick}
-          className="btn btn-outline-secondary w-100">もっと見る</button>
-      </div>
-    );
-  }
-  else {
-    return null;
-  }
+  return (
+    <div>
+      <button type="button" onClick={props.onClick}
+        className="btn btn-outline-secondary w-100">もっと見る</button>
+    </div>
+  );
 }
 
 export default function (props) {
@@ -98,8 +96,8 @@ export default function (props) {
       <div className="entries mb-4">
         <EntryList entries={state.entries} />
       </div>
-      <MoreButton entries={state.entries} entriesCount={state.entriesCount}
-        onClick={() => moreClicked(query, state, updateState)}/>
+      {state.entries.length < state.entriesCount &&
+        <MoreButton onClick={() => moreClicked(query, state, updateState)}/>}
     </div>
   );
 }
