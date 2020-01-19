@@ -21,7 +21,6 @@ document.addEventListener('turbolinks:load', () => {
   Flash.show();
 
   let apps = [
-    { elem: '#entry-star', object: EntryStar },
     { elem: '#session-form', object: SessionForm }
   ];
 
@@ -39,7 +38,8 @@ document.addEventListener('turbolinks:load', () => {
 
   apps = [
     { elem: '#entry-index', object: EntryIndex },
-    { elem: '#entry-form', object: EntryForm }
+    { elem: '#entry-form', object: EntryForm },
+    { elem: '#entry-star', object: EntryStar }
   ];
 
   props = window.jsProps || {};
