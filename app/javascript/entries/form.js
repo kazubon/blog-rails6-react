@@ -3,34 +3,34 @@ import Axios from 'axios';
 import Flash from '../flash';
 
 const initialState = {
-  title: '',
-  body: '',
-  tags: [],
-  published_at: '',
-  draft: false,
+  entry: {
+    title: '',
+    body: '',
+    tags: [],
+    published_at: '',
+    draft: false
+  },
   alert: ''
 };
 
 function reducer(state, action) {
   switch(action.name) {
     case 'entry':
-      let entry = {};
-      for(let x in action.entry) {
-        entry[x] = (action.entry[x] === null ? '' : action.entry[x]);
-      }
-      return { ...state, ...entry };
+      return { entry: action.entry, alert: state.alert };
     case 'tag':
-      let tags = copyTags(state.tags);
+      let tags = state.entry.tags.map(t => { return { name: t.name } });
       tags[action.index] = { name: action.value };
-      return { ...state, tags };
+      return { entry: { ...state.entry, tags }, alert: state.alert };
     case 'draft':
-      return { ...state, draft: action.checked };
+      return { entry: { ...state.entry, draft: action.checked }, alert: state.alert };
+    case 'alert':
+      return { entry: state.entry, alert: action.value };
     default:
-      return { ...state, [action.name]: action.value };
+      return { entry: { ...state.entry, [action.name]: action.value }, alert: state.alert };
   }
 }
 
-function copyTags(srcTags) {
+function initTags(srcTags) {
   let tags = [];
   let len = srcTags.length;
   for(let i = 0; i < 5; i++) {
@@ -43,30 +43,27 @@ function getEntry(props, updateState) {
   let path = props.entryId ? `/entries/${props.entryId}/edit` : '/entries/new';
 
   Axios.get(path + '.json').then((res) => {
-    let entry = { ...res.data.entry, tags: copyTags(res.data.entry.tags) };
-    updateState({name: 'entry', entry});
+    let entry = res.data.entry;
+    updateState({
+      name: 'entry',
+      entry: {
+        title: entry.title || '',
+        body: entry.body || '',
+        tags: initTags(entry.tags),
+        published_at: entry.published_at,
+        draft: entry.draft
+      }
+    });
   });
 }
 
 function validate(state, updateState) {
-  if(!(state.body && state.body.match(/[^\s]+/))) {
+  if(!(state.entry.body && state.entry.body.match(/[^\s]+/))) {
     updateState({ name: 'alert', value: '本文を入力してください。' });
     window.scrollTo(0, 0);
     return false;
   }
   return true;
-}
-
-function entryData(state) {
-  return {
-    entry: {
-      title: state.title,
-      body: state.body,
-      tags: state.tags,
-      published_at: state.published_at,
-      draft: state.draft
-    }
-  };
 }
 
 function handleSubmit(e, entryId, state, updateState) {
@@ -80,7 +77,7 @@ function handleSubmit(e, entryId, state, updateState) {
     headers: {
       'X-CSRF-Token' : $('meta[name="csrf-token"]').attr('content')
     },
-    data: entryData(state)
+    data: { entry: state.entry }
   }).then((res) => {
     Flash.set({ notice: res.data.notice });
     Turbolinks.visit(res.data.location);
@@ -155,6 +152,7 @@ export default function (props) {
       checked: e.target.checked });
   }
 
+  let entry = state.entry;
   return (
     <form onSubmit={e => handleSubmit(e, props.entryId, state, updateState)}>
       {state.alert && <div className="alert alert-danger">{state.alert}</div>}
@@ -162,20 +160,20 @@ export default function (props) {
         <label htmlFor="entry-title">タイトル</label>
         <input type="text" id="entry-title" name="title" className="form-control"
           required="" maxLength="255" pattern=".*[^\s]+.*"
-          value={state.title} onChange={handleChange}
+          value={entry.title} onChange={handleChange}
            />
       </div>
       <div className="form-group">
         <label htmlFor="entry-body">本文</label>
         <textarea id="entry-body" name="body" cols="80" rows="15"
           className="form-control" required="" maxLength="40000"
-          value={state.body} onChange={handleChange}
+          value={entry.body} onChange={handleChange}
           />
       </div>
       <div className="form-group">
         <label htmlFor="entry-tag0">タグ</label>
         <div>
-          <TagList tags={state.tags} updateState={updateState} />
+          <TagList tags={entry.tags} updateState={updateState} />
         </div>
       </div>
       <div className="form-group">
@@ -183,11 +181,11 @@ export default function (props) {
         <input type="text" id="entry-published_at" name="published_at"
           className="form-control"
           pattern="\d{4}(-|\/)\d{2}(-|\/)\d{2} +\d{2}:\d{2}"
-          value={state.published_at} onChange={handleChange} />
+          value={entry.published_at} onChange={handleChange} />
       </div>
       <div className="form-group mb-4">
         <input type="checkbox" id="entry-draft" name="draft" value="1"
-          checked={state.draft} onChange={handleChange} />
+          checked={entry.draft} onChange={handleChange} />
         <label htmlFor="entry-draft">下書き</label>
       </div>
       <div className="row">
