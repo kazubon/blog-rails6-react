@@ -15,7 +15,7 @@ function entryReducer(entry, action) {
     case 'entry':
       return action.entry;
     case 'tag':
-      let tags = entry.tags.map(t => { return { name: t.name } });
+      let tags = entry.tags.map(t => ({ name: t.name }));
       tags[action.index] = { name: action.value };
       return { ...entry, tags };
     case 'draft':
@@ -108,13 +108,13 @@ function handleDelete(entryId, setAlert) {
 }
 
 function TagList(props) {
-  return props.tags.map((tag, idx) => {
-    return <input key={idx}
+  return props.tags.map((tag, idx) => (
+    <input key={idx}
       value={tag.name}
       onChange={e => props.onChange(idx, e.target.value)}
       className="form-control width-auto d-inline-block mr-2"
       style={{width: '17%'}} maxLength="255" />
-  });
+  ));
 }
 
 function SubmitButton(props) {
