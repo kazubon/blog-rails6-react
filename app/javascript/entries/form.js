@@ -3,13 +3,13 @@ import Axios from 'axios';
 import Flash from '../flash';
 
 function TagList(props) {
-  return props.tags.map((tag, idx) => {
-    return <input key={idx}
+  return props.tags.map((tag, idx) => (
+    <input key={idx}
       value={tag.name}
       onChange={e => props.onChange(idx, e.target.value)}
       className="form-control width-auto d-inline-block mr-2"
       style={{width: '17%'}} maxLength="255" />
-  });
+  ));
 }
 
 function SubmitButton(props) {
@@ -63,7 +63,7 @@ export default class Form extends React.Component {
   }
 
   setTag(index, value) {
-    let tags = this.state.entry.tags.map(t => { return { name: t.name } });
+    let tags = this.state.entry.tags.map(t => ({ name: t.name }));
     tags[index] = { name: value };
     this.setState({ entry: { ...this.state.entry, tags: tags }});
   }
