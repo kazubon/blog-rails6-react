@@ -1,32 +1,27 @@
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import Axios from 'axios';
 import Flash from '../flash';
 
-const initialState = {
-  entry: {
-    title: '',
-    body: '',
-    tags: [],
-    published_at: '',
-    draft: false
-  },
-  alert: ''
+const initialEntry = {
+  title: '',
+  body: '',
+  tags: [],
+  published_at: '',
+  draft: false
 };
 
-function reducer(state, action) {
+function entryReducer(entry, action) {
   switch(action.name) {
     case 'entry':
-      return { entry: action.entry, alert: state.alert };
+      return action.entry;
     case 'tag':
-      let tags = state.entry.tags.map(t => { return { name: t.name } });
+      let tags = entry.tags.map(t => { return { name: t.name } });
       tags[action.index] = { name: action.value };
-      return { entry: { ...state.entry, tags }, alert: state.alert };
+      return { ...entry, tags };
     case 'draft':
-      return { entry: { ...state.entry, draft: action.checked }, alert: state.alert };
-    case 'alert':
-      return { entry: state.entry, alert: action.value };
+      return { ...entry, draft: action.checked };
     default:
-      return { entry: { ...state.entry, [action.name]: action.value }, alert: state.alert };
+      return { ...entry, [action.name]: action.value };
   }
 }
 
@@ -39,12 +34,12 @@ function initTags(srcTags) {
   return tags;
 }
 
-function getEntry(props, updateState) {
+function getEntry(props, updateEntry) {
   let path = props.entryId ? `/entries/${props.entryId}/edit` : '/entries/new';
 
   Axios.get(path + '.json').then((res) => {
     let entry = res.data.entry;
-    updateState({
+    updateEntry({
       name: 'entry',
       entry: {
         title: entry.title || '',
@@ -57,18 +52,18 @@ function getEntry(props, updateState) {
   });
 }
 
-function validate(state, updateState) {
-  if(!(state.entry.body && state.entry.body.match(/[^\s]+/))) {
-    updateState({ name: 'alert', value: '本文を入力してください。' });
+function validate(entry, setAlert) {
+  if(!(entry.body && entry.body.match(/[^\s]+/))) {
+    setAlert('本文を入力してください。');
     window.scrollTo(0, 0);
     return false;
   }
   return true;
 }
 
-function handleSubmit(e, entryId, state, updateState) {
+function handleSubmit(e, entryId, entry, setAlert) {
   e.preventDefault();
-  if(!validate(state, updateState)) { return }
+  if(!validate(entry, setAlert)) { return }
 
   let path = entryId ? `/entries/${entryId}` : '/entries';
   Axios({
@@ -77,22 +72,22 @@ function handleSubmit(e, entryId, state, updateState) {
     headers: {
       'X-CSRF-Token' : $('meta[name="csrf-token"]').attr('content')
     },
-    data: { entry: state.entry }
+    data: { entry: entry }
   }).then((res) => {
     Flash.set({ notice: res.data.notice });
     Turbolinks.visit(res.data.location);
   }).catch((error) => {
     if(error.response.status == 422) {
-      updateState({ name: 'alert', value: error.response.data.alert });
+      setAlert(error.response.data.alert);
     }
     else {
-      updateState({ name: 'alert', value: `${error.response.status} ${error.response.statusText}` });
+      setAlert(`${error.response.status} ${error.response.statusText}`);
     }
     window.scrollTo(0, 0);
   });
 }
 
-function handleDelete(entryId, updateState) {
+function handleDelete(entryId, setAlert) {
   if(!confirm('本当に削除しますか?')) {
     return;
   }
@@ -107,7 +102,7 @@ function handleDelete(entryId, updateState) {
     Flash.set({ notice: res.data.notice });
     Turbolinks.visit(res.data.location);
   }).catch((error) => {
-    updateState({ name: 'alert', value: `${error.response.status} ${error.response.statusText}` });
+    setAlert(`${error.response.status} ${error.response.statusText}`);
     window.scrollTo(0, 0);
   });
 }
@@ -116,7 +111,7 @@ function TagList(props) {
   return props.tags.map((tag, idx) => {
     return <input key={idx}
       value={tag.name}
-      onChange={e => props.updateState({name: 'tag', index: idx, value: e.target.value })}
+      onChange={e => props.onChange(idx, e.target.value)}
       className="form-control width-auto d-inline-block mr-2"
       style={{width: '17%'}} maxLength="255" />
   });
@@ -141,21 +136,21 @@ function DeleteButton(props) {
 }
 
 export default function (props) {
-  const [state, updateState] = useReducer(reducer, initialState);
+  const [entry, updateEntry] = useReducer(entryReducer, initialEntry);
+  const [alert, setAlert] = useState('');
 
   useEffect(() => {
-    getEntry(props, updateState);
+    getEntry(props, updateEntry);
   }, []);
 
   function handleChange(e) {
-    updateState({name: e.target.name, value: e.target.value,
+    updateEntry({name: e.target.name, value: e.target.value,
       checked: e.target.checked });
   }
 
-  let entry = state.entry;
   return (
-    <form onSubmit={e => handleSubmit(e, props.entryId, state, updateState)}>
-      {state.alert && <div className="alert alert-danger">{state.alert}</div>}
+    <form onSubmit={e => handleSubmit(e, props.entryId, entry, setAlert)}>
+      {alert && <div className="alert alert-danger">{alert}</div>}
       <div className="form-group">
         <label htmlFor="entry-title">タイトル</label>
         <input type="text" id="entry-title" name="title" className="form-control"
@@ -173,7 +168,8 @@ export default function (props) {
       <div className="form-group">
         <label htmlFor="entry-tag0">タグ</label>
         <div>
-          <TagList tags={entry.tags} updateState={updateState} />
+          <TagList tags={entry.tags}
+            onChange={(idx, value) => updateEntry({ name: 'tag', index: idx, value: value })} />
         </div>
       </div>
       <div className="form-group">
@@ -192,7 +188,7 @@ export default function (props) {
         <SubmitButton entryId={props.entryId} />
         {props.entryId &&
           <DeleteButton
-            onClick={() => handleDelete(props.entryId, updateState)} />}
+            onClick={() => handleDelete(props.entryId, setAlert)} />}
       </div>
     </form>
   );
