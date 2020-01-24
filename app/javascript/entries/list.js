@@ -1,39 +1,6 @@
-import React, { useEffect, useReducer } from 'react';
+import React from 'react';
 import Axios from 'axios';
 import qs from 'qs';
-
-const initialState = {
-  entries: [],
-  entriesCount: 0,
-  offset: 0
-};
-
-function reducer(state, action) {
-  if(action.name == 'entries') {
-    return { entries: state.entries.concat(action.value.entries),
-      entriesCount: action.value.entriesCount, offset: action.value.offset };
-  }
-  else {
-    return { ...state, [action.name]: action.value };
-  }
-}
-
-function getEntries(query, offset, updateState) {
-  let params = { ...query, offset: offset };
-  let path = '/entries.json?' + qs.stringify(params);
-  Axios.get(path).then((res) => {
-    updateState({ name: 'entries',
-      value: {
-        entries: res.data.entries, entriesCount: res.data.entries_count,
-        offset: offset
-      }
-    });
-  });
-}
-
-function moreClicked(query, state, updateState) {
-  getEntries(query, state.offset + 20, updateState);
-}
 
 function SortLinks(props) {
   let key = props.query.sort == 'stars' ? 'date' : 'stars';
@@ -80,24 +47,48 @@ function MoreButton(props) {
   );
 }
 
-export default function (props) {
-  const query = props.query;
-  const [state, updateState] = useReducer(reducer, initialState);
+export default class extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      entries: [],
+      entriesCount: 0,
+      offset: 0
+    };
+  }
 
-  useEffect(() => {
-    getEntries(query, 0, updateState);
-  }, []);
+  componentDidMount() {
+    this.getEntries(0);
+  }
 
-  return (
-    <div>
-      <div className="text-right mb-3">
-        {state.entriesCount}件 | <SortLinks query={query} />
+  getEntries(offset) {
+    let params = { ...this.props.query, offset: offset };
+    let path = '/entries.json?' + qs.stringify(params);
+    Axios.get(path).then((res) => {
+      this.setState({
+        entries: this.state.entries.concat(res.data.entries),
+        entriesCount: res.data.entries_count,
+        offset: offset
+      });
+    });
+  }
+
+  moreClicked() {
+    this.getEntries(this.state.offset + 20);
+  }
+
+  render() {
+    return (
+      <div>
+        <div className="text-right mb-3">
+          {this.state.entriesCount}件 | <SortLinks query={this.props.query} />
+        </div>
+        <div className="entries mb-4">
+          <EntryList entries={this.state.entries} />
+        </div>
+        {this.state.entries.length < this.state.entriesCount &&
+          <MoreButton onClick={() => this.moreClicked()} />}
       </div>
-      <div className="entries mb-4">
-        <EntryList entries={state.entries} />
-      </div>
-      {state.entries.length < state.entriesCount &&
-        <MoreButton onClick={() => moreClicked(query, state, updateState)}/>}
-    </div>
-  );
+    );
+  }
 }
