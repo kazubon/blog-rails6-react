@@ -2,6 +2,10 @@
 
 Rails 6とReactによるフォームのサンプルです。
 
+masterブランチでは、Hooksを使っています。
+`class extends React.Component` を使ったバージョンもあります。
+https://github.com/kazubon/blog-rails6-react/tree/extend
+
 ## 動作環境
 
 Ruby 2.6.5、Ruby on Rails 6.0, Webpacker 4.2, React 16.12
