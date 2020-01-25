@@ -4,8 +4,8 @@ Rails 6とReactによるフォームのサンプルです。
 
 masterブランチでは、Hooksを使っています。
 
-`class extends React.Component` を使ったバージョンもあります。
-https://github.com/kazubon/blog-rails6-react/tree/extend
+`class extends React.Component` を使ったバージョンを別ブランチにしています。
+- https://github.com/kazubon/blog-rails6-react/tree/extend
 
 ## 動作環境
 
