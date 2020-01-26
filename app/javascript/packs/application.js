@@ -4,13 +4,13 @@ import "regenerator-runtime/runtime";
 require("@rails/ujs").start();
 require("turbolinks").start();
 
-import React from 'react'
-import ReactDOM from 'react-dom'
+import React from 'react';
+import ReactDOM from 'react-dom';
 
 import EntryIndex from '../entries/index';
 import EntryForm from '../entries/form';
 import EntryStar from '../entries/star';
-import Flash from '../flash'
+import Flash from '../flash';
 
 document.addEventListener('turbolinks:load', () => {
   Flash.show();
