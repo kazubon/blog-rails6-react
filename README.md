@@ -7,6 +7,9 @@ masterブランチでは、Hooksを使っています。
 `class extends React.Component` を使ったバージョンを別ブランチにしています。
 - https://github.com/kazubon/blog-rails6-react/tree/extend
 
+Vue.js版もあります: https://github.com/kazubon/blog-rails6-vuejs/ <br>
+Qiita記事: https://qiita.com/kazutosato/items/b046ea203533af08acdb
+
 ## 動作環境
 
 Ruby 2.6.5、Ruby on Rails 6.0, Webpacker 4.2, React 16.12
