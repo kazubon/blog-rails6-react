@@ -110,9 +110,6 @@ export default class extends React.Component {
     Axios({
       method: this.props.entryId ? 'patch' : 'post',
       url: path + '.json',
-      headers: {
-        'X-CSRF-Token' : $('meta[name="csrf-token"]').attr('content')
-      },
       data: { entry: this.state.entry }
     }).then((res) => {
       Flash.set({ notice: res.data.notice });
@@ -132,13 +129,9 @@ export default class extends React.Component {
     if(!confirm('本当に削除しますか?')) {
       return;
     }
-    let path = this.props.entryId ? `/entries/${this.props.entryId}` : '/entries';
     Axios({
       method: 'delete',
-      url: path + '.json',
-      headers: {
-        'X-CSRF-Token' : $('meta[name="csrf-token"]').attr('content')
-      }
+      url: `/entries/${this.props.entryId}.json`
     }).then((res) => {
       Flash.set({ notice: res.data.notice });
       Turbolinks.visit(res.data.location);

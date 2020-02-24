@@ -11,6 +11,7 @@ import EntryIndex from '../entries/index';
 import EntryForm from '../entries/form';
 import EntryStar from '../entries/star';
 import Flash from '../flash';
+import '../axios_config'
 
 document.addEventListener('turbolinks:load', () => {
   Flash.show();

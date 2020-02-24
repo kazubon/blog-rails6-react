@@ -14,10 +14,7 @@ export default class extends React.Component {
     evt.preventDefault();
     Axios({
       method: 'patch',
-      url: `/entries/${this.props.entryId}/star.json`,
-      headers: {
-        'X-CSRF-Token' : $('meta[name="csrf-token"]').attr('content')
-      }
+      url: `/entries/${this.props.entryId}/star.json`
     }).then((res) => {
       this.setState({ count: res.data.count });
     });
