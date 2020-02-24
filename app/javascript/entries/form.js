@@ -69,9 +69,6 @@ function handleSubmit(e, entryId, entry, setAlert) {
   Axios({
     method: entryId ? 'patch' : 'post',
     url: path + '.json',
-    headers: {
-      'X-CSRF-Token' : $('meta[name="csrf-token"]').attr('content')
-    },
     data: { entry: entry }
   }).then((res) => {
     Flash.set({ notice: res.data.notice });
@@ -91,13 +88,9 @@ function handleDelete(entryId, setAlert) {
   if(!confirm('本当に削除しますか?')) {
     return;
   }
-  let path = entryId ? `/entries/${entryId}` : '/entries';
   Axios({
     method: 'delete',
-    url: path + '.json',
-    headers: {
-      'X-CSRF-Token' : $('meta[name="csrf-token"]').attr('content')
-    }
+    url: `/entries/${entryId}.json`
   }).then((res) => {
     Flash.set({ notice: res.data.notice });
     Turbolinks.visit(res.data.location);

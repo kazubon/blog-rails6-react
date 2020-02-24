@@ -5,10 +5,7 @@ function submit(evt, entryId, setCount) {
   evt.preventDefault();
   Axios({
     method: 'patch',
-    url: `/entries/${entryId}/star.json`,
-    headers: {
-      'X-CSRF-Token' : $('meta[name="csrf-token"]').attr('content')
-    }
+    url: `/entries/${entryId}/star.json`
   }).then((res) => {
     setCount(res.data.count);
   });
